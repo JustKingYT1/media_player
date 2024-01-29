@@ -1,8 +1,8 @@
 # Global settings
 
-DEBUG = True
+DEBUG = False
 
 # Database settings
 
-DB_PATH = '../music_player_app/src/database'
-DB_NAME = 'musicPlayer.db'
+DB_PATH = '../media_player/src/database'
+DB_NAME = 'mediaPlayer.db'

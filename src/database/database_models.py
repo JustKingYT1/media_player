@@ -2,9 +2,9 @@ import peewee
 
 import sys
 
-sys.path.append('../music_player_app')
+sys.path.append('../media_player')
 
-from src.settings import DB_PATH, DB_NAME
+from src.settings import DB_PATH, DB_NAME, DEBUG
 
 
 db = peewee.SqliteDatabase(database=f'{DB_PATH}/{DB_NAME}')
@@ -20,13 +20,13 @@ class Musics(BaseModel):
     name = peewee.CharField()
     time = peewee.CharField()
 
+if DEBUG:
+    db.create_tables([Musics,])
 
-db.create_tables([Musics,])
-
-Musics.create(author='Avtor_1', name='Music_2', time='2:29')
-Musics.create(author='Avtor_2', name='Music_1', time='2:01')
-Musics.create(author='Avtor_1', name='Music_3', time='3:01')
-    
+    Musics.create(author='Avtor_1', name='Music_2', time='2:29')
+    Musics.create(author='Avtor_2', name='Music_1', time='2:01')
+    Musics.create(author='Avtor_1', name='Music_3', time='3:01')
+        
 # models_list = []
 
 # for model in Musics.select():

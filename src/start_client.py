@@ -1,6 +1,6 @@
 from sys import argv, path
 
-path.append('../music_player_app')
+path.append('../media_player')
 
 from src.client.main_window import MainWindow
 from PySide6.QtWidgets import QApplication
