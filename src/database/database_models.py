@@ -23,17 +23,7 @@ class Musics(BaseModel):
 if DEBUG:
     db.create_tables([Musics,])
 
-    Musics.create(author='Avtor_1', name='Music_2', time='2:29')
-    Musics.create(author='Avtor_2', name='Music_1', time='2:01')
-    Musics.create(author='Avtor_1', name='Music_3', time='3:01')
+    Musics.create(author='Avtor_1', name='music_2', time='2:29')
+    Musics.create(author='Avtor_2', name='music_1', time='2:01')
+    Musics.create(author='Avtor_1', name='music_3', time='3:01')
         
-# models_list = []
-
-# for model in Musics.select():
-#     new_model = {}
-#     for attr in ['author', 'name', 'time']:
-#         get_attr = getattr(model, attr)
-#         new_model[attr] = get_attr
-#     models_list.append(new_model)
-
-# print(len(Musics.select()))

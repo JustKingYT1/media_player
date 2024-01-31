@@ -1,6 +1,7 @@
 # Global settings
 
 DEBUG = False
+MUSIC_DIR = '../media_player/resources'
 
 # Database settings
 
