@@ -101,6 +101,9 @@ class ToolsWidget(QtWidgets.QWidget):
                     pass
                 self.stream.start_stream()
         
+        self.chunk_total = 0
+        self.is_played = False
+        
     def stop_audio(self) -> None:
         if not self.is_paused:
             self.is_paused = True

@@ -32,5 +32,4 @@ class MainWindow(QtWidgets.QMainWindow):
         self.main_v_layout.addWidget(self.tools_widget)
 
     def closeEvent(self, event: QCloseEvent) -> None:   
-        self.tools_widget.stream.close()
         exit()
