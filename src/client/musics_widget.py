@@ -7,6 +7,7 @@ class MusicWidget(QtWidgets.QWidget):
     flag: int = 0
     def __init__(self, parent: QtWidgets.QWidget) -> None:
         super().__init__(parent=parent)
+        self.parent = parent
         self.__init_ui()
         self.__setting_ui()
     
@@ -16,6 +17,7 @@ class MusicWidget(QtWidgets.QWidget):
         self.tools_v_layout = QtWidgets.QVBoxLayout()
         self.switch_button = QtWidgets.QPushButton(text='Show')
         self.random_button = QtWidgets.QPushButton(text='Randomize')
+        self.table.setCurrentCell(2, 1)
 
     def __setting_ui(self) -> None:
         self.setLayout(self.main_h_layout)
@@ -38,11 +40,9 @@ class MusicWidget(QtWidgets.QWidget):
         match self.flag:
             case 0: 
                 self.fill_musics()
-                self.switch_button.setText('Hide')
                 self.flag = 1
             case 1: 
                 self.clear_musics()
-                self.switch_button.setText('Show')
                 self.flag = 0
     
     def shuffle_items(self) -> list:
@@ -73,7 +73,13 @@ class MusicWidget(QtWidgets.QWidget):
             for item in [['author', 0], ['name', 1], ['time', 2]]: 
                 self.table.setItem(count, item[1], QtWidgets.QTableWidgetItem(getattr(model, item[0])))
             count += 1
+        self.parent.tools_widget.next_button.setEnabled(True)
+        self.parent.tools_widget.previous_button.setEnabled(True)            
+        self.switch_button.setText('Hide')
 
     def clear_musics(self) -> None:
         self.table.clearContents()
         self.table.setRowCount(0)
+        self.parent.tools_widget.next_button.setEnabled(False)
+        self.parent.tools_widget.previous_button.setEnabled(False)
+        self.switch_button.setText('Show')
