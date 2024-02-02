@@ -16,4 +16,3 @@ class Slider(QtWidgets.QSlider):
         seconds = int(self.parent.total_time.split(':')[1])
         total_seconds = minutes * 60 + seconds
         self.current_slide_seconds = total_seconds * self.value() / 100
-        print(self.current_slide_seconds)

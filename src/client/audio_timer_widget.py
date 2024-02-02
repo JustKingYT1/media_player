@@ -68,7 +68,6 @@ class AudioTimeWidget(QWidget):
             self.slider.grabMouse()
         elif event.type() == QtCore.QEvent.MouseButtonRelease and source is self.slider:
             self.slider.releaseMouse()
-            self.parent.tools_widget.set_start_time()
         elif event.type() == QtCore.QEvent.MouseMove and source is self.slider:
             if self.slider.isSliderDown():
                 cursor_position = event.globalPos()
@@ -90,4 +89,3 @@ class AudioTimeWidget(QWidget):
 
     def update_time(self) -> None:
         self.slider.setValue((self.parent.tools_widget.chunk_total/self.parent.tools_widget.wf.getnframes())*100)
-        
