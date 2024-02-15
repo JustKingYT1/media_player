@@ -1,10 +1,17 @@
 from PySide6 import QtWidgets, QtCore, QtGui
 from src.database.database_models import Musics
 import random
+import enum
+import peewee
+
+
+class TableRoles(enum.Enum):
+    FilePath = QtCore.Qt.ItemDataRole.UserRole
 
 
 class MusicWidget(QtWidgets.QWidget):
     flag: int = 0
+    row: int = 0
     def __init__(self, parent: QtWidgets.QWidget) -> None:
         super().__init__(parent=parent)
         self.parent = parent
@@ -15,44 +22,47 @@ class MusicWidget(QtWidgets.QWidget):
         self.main_h_layout = QtWidgets.QHBoxLayout()
         self.table = QtWidgets.QTableWidget()
         self.tools_v_layout = QtWidgets.QVBoxLayout()
-        self.switch_button = QtWidgets.QPushButton(text='Show')
-        self.random_button = QtWidgets.QPushButton(text='Randomize')
-        self.table.setCurrentCell(2, 1)
 
     def __setting_ui(self) -> None:
         self.setLayout(self.main_h_layout)
         self.main_h_layout.addWidget(self.table)
         self.main_h_layout.addLayout(self.tools_v_layout)
+        self.table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
         self.table.setRowCount(0)
         self.table.setColumnCount(3)
+        self.table.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table.setColumnHidden(2, True)
         
         self.tools_v_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
 
-        self.tools_v_layout.addWidget(self.switch_button)
-        self.tools_v_layout.addWidget(self.random_button)
+        self.table.setHorizontalHeaderLabels(["Исполнитель", "Имя песни"])
 
-        self.table.setHorizontalHeaderLabels(["Имя песни", "Исполнитель", "Время"])
+        self.table.cellClicked.connect(self.click_cell)
+        self.table.currentItemChanged.connect(self.current_item_changed)
 
-        self.switch_button.clicked.connect(self.switch_function)
-        self.random_button.clicked.connect(self.randomize)
+        self.fill_musics(Musics.select())
     
-    def switch_function(self) -> None:
-        match self.flag:
-            case 0: 
-                self.fill_musics()
-                self.flag = 1
-            case 1: 
-                self.clear_musics()
-                self.flag = 0
+    def click_cell(self) -> None:
+        if not self.parent.tools_widget.current_music_path:
+            self.parent.tools_widget.current_music_path = self.table.model().index(self.table.currentRow(), 2).data()
+        
+        if self.parent.tools_widget.audio_player.hasAudio() and self.parent.tools_widget.current_music_path == self.parent.tools_widget.new_music_path:
+            self.parent.tools_widget.pause()
+            return
+
+        self.parent.tools_widget.play()
+
+    def current_item_changed(self, _: QtWidgets.QTableWidgetItem, __: QtWidgets.QTableWidgetItem) -> None:
+        if not self.parent.tools_widget.current_music_path:
+            self.parent.tools_widget.current_music_path = self.table.model().index(self.table.currentRow(), 2).data()
+        self.parent.tools_widget.new_music_path = self.table.model().index(self.table.currentRow(), 2).data()
+        print(self.parent.tools_widget.new_music_path)
     
     def shuffle_items(self) -> list:
-        self.rows = self.table.rowCount()
-        self.columns = self.table.columnCount()
-        indexes = [(row, column) for row in range(self.rows) for column in range(self.columns)]
-        result = [indexes[i:i+3] for i in range(0, len(indexes), 3)]
+        indexes = [(row, column) for row in range(self.table.rowCount()) for column in range(self.table.columnCount())]
+        result = [indexes[i:i+self.table.columnCount()] for i in range(0, len(indexes), self.table.columnCount())]
         random.shuffle(result)
         return result
-
 
     def randomize(self) -> None:
         new_rows = random.sample(range(0, self.table.rowCount()), self.table.rowCount())
@@ -65,21 +75,47 @@ class MusicWidget(QtWidgets.QWidget):
                 new_item = self.table.takeItem(new_row, new_column)
                 self.table.setItem(old_row, old_column, new_item)
                 self.table.setItem(new_row, new_column, old_item)
+
+    def get_files_for_fill(self, list_files: list[QtCore.QFileInfo]) -> tuple[str]:
+        path_to_files = [str(elem.absoluteFilePath()) for elem in list_files]
+        names = [elem.fileName().split(' - ') for elem in list_files]
+        [elem.append(item) for elem, item in zip(names, path_to_files)]
+        return names
+
+    def fill_database(self, names: list[str]) -> None:
+        list_not_unique_music = []
+        for elem in names:
+            try:
+                Musics.create(author=elem[0], name=elem[1], path=elem[2])
+            except peewee.IntegrityError: 
+                elem.pop(2)
+                list_not_unique_music.append(elem)
+
+        if len(list_not_unique_music) > 0:
+            self.parent.show_message(
+                text=f'This musics are aploaded: {str(list_not_unique_music).replace("[", "").replace("]", "")}',
+                error=True
+            )
+        
+        return Musics.select()
+
     
-    def fill_musics(self) -> None:
-        count = 0
-        self.table.setRowCount(len(Musics.select()))
+    def fill_musics(self, music) -> None:
+        self.table.setRowCount(len(music))
+        for model in music:
+            for item in [['author', 0], ['name', 1], ['path', 2]]: 
+                itemWidget = QtWidgets.QTableWidgetItem(getattr(model, item[0]))
+                self.table.setItem(self.row, item[1], itemWidget)
+            self.row += 1     
+
+    def clear_database(self) -> None:
         for model in Musics.select():
-            for item in [['author', 0], ['name', 1], ['time', 2]]: 
-                self.table.setItem(count, item[1], QtWidgets.QTableWidgetItem(getattr(model, item[0])))
-            count += 1
-        self.parent.tools_widget.next_button.setEnabled(True)
-        self.parent.tools_widget.previous_button.setEnabled(True)            
-        self.switch_button.setText('Hide')
+            model.delete().execute()
 
     def clear_musics(self) -> None:
+        self.parent.tools_widget.stop()
+        self.clear_database()
         self.table.clearContents()
+        self.row = 0
         self.table.setRowCount(0)
-        self.parent.tools_widget.next_button.setEnabled(False)
-        self.parent.tools_widget.previous_button.setEnabled(False)
-        self.switch_button.setText('Show')
+

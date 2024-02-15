@@ -18,18 +18,57 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init_ui(self) -> None:
         self.central_widget = QtWidgets.QWidget()
         self.main_v_layout = QtWidgets.QVBoxLayout()
+        self.tool_bar = QtWidgets.QToolBar(self)
+        self.open_file_dialog_action = QtGui.QAction('Open', self)
+        self.clear_music_list_action = QtGui.QAction('Clear', self)
+        self.randomize_musics_action = QtGui.QAction('Shuffle', self)
         self.music_widget = MusicWidget(self)
         self.tools_widget = ToolsWidget(self)
-        self.audio_time_widget = AudioTimeWidget(self)
     
     def __setting_ui(self) -> None:
         self.resize(550, 440)
         self.setCentralWidget(self.central_widget)
+        self.addToolBar(self.tool_bar)
+        self.tool_bar.addAction(self.open_file_dialog_action)
+        self.tool_bar.addAction(self.randomize_musics_action)
+        self.tool_bar.addAction(self.clear_music_list_action)
         self.central_widget.setLayout(self.main_v_layout)
         self.main_v_layout.setContentsMargins(0,0,0,0)
         self.main_v_layout.addWidget(self.music_widget)
-        self.main_v_layout.addWidget(self.audio_time_widget)
         self.main_v_layout.addWidget(self.tools_widget)
+
+        self.open_file_dialog_action.triggered.connect(self.open_action_clicked)
+        self.clear_music_list_action.triggered.connect(self.clear_action_clicked)
+        self.randomize_musics_action.triggered.connect(self.randomize_action_clicked)
+
+    def show_message(self, text: str, error: bool = False, parent: QtWidgets.QWidget = None):
+        message_box = QtWidgets.QMessageBox(parent=self if not parent else parent)
+        message_box.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
+        message_box.setWindowTitle('Error' if error else 'Information')
+        message_box.setIcon(QtWidgets.QMessageBox.Icon.Critical if error else QtWidgets.QMessageBox.Icon.Information)
+        message_box.setText(text)
+        message_box.exec_()
+
+    def open_action_clicked(self) -> None:
+        names = self.music_widget.get_files_for_fill([QtCore.QFileInfo(elem) for elem in QtWidgets.QFileDialog().getOpenFileNames(self, 'Open files', filter='Music (*.mp3)')[0]])
+        self.music_widget.fill_musics(self.music_widget.fill_database(names))
+        self.tools_widget.listen_button.setEnabled(True)
+        self.tools_widget.next_button.setEnabled(True)
+        self.tools_widget.previous_button.setEnabled(True)
+        self.tools_widget.stop_button.setEnabled(True)
+        self.tools_widget.pause_button.setEnabled(True)
+
+    def clear_action_clicked(self) -> None:
+        self.music_widget.clear_musics()
+        self.tools_widget.listen_button.setEnabled(False)
+        self.tools_widget.stop_button.setEnabled(False)
+        self.tools_widget.pause_button.setEnabled(False)
+        self.tools_widget.next_button.setEnabled(False)
+        self.tools_widget.previous_button.setEnabled(False)        
+    
+    def randomize_action_clicked(self) -> None:
+        self.music_widget.randomize()
+
 
     def closeEvent(self, event: QCloseEvent) -> None:   
         exit()
