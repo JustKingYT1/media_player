@@ -20,6 +20,10 @@ class Slider(QtWidgets.QSlider):
     def eventFilter(self, source, event):
         if event.type() == QtCore.QEvent.MouseButtonPress and source is self:
             self.grabMouse()
+            cursor_position = event.globalPos()
+            slider_position = self.mapFromGlobal(cursor_position)
+            value = self.minimum() + (self.maximum() - self.minimum()) * slider_position.x() / self.width()
+            self.setValue(int(value))
         elif event.type() == QtCore.QEvent.MouseButtonRelease and source is self:
             self.releaseMouse()
         elif event.type() == QtCore.QEvent.MouseMove and source is self:

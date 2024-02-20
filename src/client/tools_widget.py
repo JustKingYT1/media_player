@@ -71,6 +71,11 @@ class ToolsWidget(QtWidgets.QWidget):
         self.stop_button.clicked.connect(self.stop)
         self.next_button.clicked.connect(self.next_audio_button_click)
         self.volume_button.clicked.connect(self.on_volume_button_click)
+        self.audio_player.mediaStatusChanged.connect(self.on_media_status_changed)
+    
+    def on_media_status_changed(self, status: QtMultimedia.QMediaPlayer.MediaStatus):
+        if status == QtMultimedia.QMediaPlayer.MediaStatus.EndOfMedia:
+            self.next_audio_button_click()
     
     def change_volume_value(self) -> None:
         self.audio_output.setVolume(float(self.volume_dialog.volume_slider.value()) / 100)
@@ -98,13 +103,12 @@ class ToolsWidget(QtWidgets.QWidget):
     def play(self) -> None:
         if not self.audio_player.hasAudio():
             self.set_audio(self.current_music_path)
-        
-        self.start_timers()
+            self.start_timers()
 
         if self.current_music_path != self.new_music_path:
             self.current_music_path = self.new_music_path
             self.stop_button.click()
-            time.sleep(0.01)
+            time.sleep(0.0008)
             self.set_audio(self.current_music_path)
 
         self.audio_player.play()

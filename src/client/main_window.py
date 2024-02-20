@@ -63,5 +63,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.music_widget.randomize()
 
 
-    def closeEvent(self, event: QCloseEvent) -> None:   
+    def closeEvent(self, event: QCloseEvent) -> None:
+        self.tools_widget.audio_player.stop()   
         exit()
