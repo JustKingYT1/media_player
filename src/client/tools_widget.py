@@ -3,42 +3,15 @@ from PySide6 import QtWidgets, QtCore, QtGui, QtMultimedia
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget
 from src.client.audio_timer_widget import AudioTimeWidget
-from src.client.slider import Slider
 from src.settings import IMG_DIR
+import time
+from src.client.volume_dialog import VolumeSliderDialog
 
 def get_pixmap(name: str) -> None:
     return QtGui.QPixmap(f'{IMG_DIR}/{name}.png')
 
-class OpenVolumeSlider(QtWidgets.QDialog):
-    def __init__(self, parent: QWidget) -> None:
-        super().__init__(parent)
-        self.__init_ui()
-        self.__setting_ui()
-        self.show()
-    
-    def __init_ui(self) -> None:
-        self.main_h_layout = QtWidgets.QHBoxLayout()
-        self.volume_slider = Slider(self, QtCore.Qt.Orientation.Vertical, style="""
-            QSlider::handle:vertical {
-                width: 3px; /* Ширина ползунка */
-                height: 3px; /* Высота ползунка */
-                margin: -3px 0; /* Выравнивание ползунка */
-                background: #000000; /* Цвет ползунка */
-                border-radius: 2px; /* Скругление углов ползунка */
-            }
-
-            QSlider::groove:vertical {
-                height: 35px; /* Высота "борозды" ползунка */
-                background: #808080; /* Цвет "борозды" ползунка */
-                border-radius: 3px; /* Скругление углов "борозды" ползунка */
-            }
-        """)
-    
-    def __setting_ui(self) -> None:
-        self.setLayout(self.main_h_layout)
-        self.main_h_layout.addWidget(self.volume_slider)
-
 class ToolsWidget(QtWidgets.QWidget):
+    volume_dialog: VolumeSliderDialog = None
     stop_flag: bool = False
     current_time = 0
     index_row = -1
@@ -52,6 +25,7 @@ class ToolsWidget(QtWidgets.QWidget):
 
     def __init_ui(self) -> None:
         self.main_v_layout = QtWidgets.QVBoxLayout()
+        self.audio_metadata = None
         self.buttons_h_layout = QtWidgets.QHBoxLayout()
         self.audio_player = QtMultimedia.QMediaPlayer(self)
         self.audio_output = QtMultimedia.QAudioOutput()
@@ -96,14 +70,27 @@ class ToolsWidget(QtWidgets.QWidget):
         self.pause_button.clicked.connect(self.pause)
         self.stop_button.clicked.connect(self.stop)
         self.next_button.clicked.connect(self.next_audio_button_click)
-        self.volume_button.clicked.connect(self.open_volume_dialog)
-
-    # def calculate_current_time(self) -> None:
-    #     self.chunk_total += self.chunk
-    #     self.current_time = int(self.chunk_total / float(self.wf.getframerate()))
+        self.volume_button.clicked.connect(self.on_volume_button_click)
+    
+    def change_volume_value(self) -> None:
+        self.audio_output.setVolume(float(self.volume_dialog.volume_slider.value()) / 100)
+    
+    def on_volume_button_click(self) -> None:
+        if self.volume_dialog:
+            if self.volume_dialog.isVisible():
+                self.volume_dialog.hide()
+                return
         
+        self.open_volume_dialog()
+
     def open_volume_dialog(self) -> None:
-        OpenVolumeSlider(self)
+        if not self.volume_dialog:
+            self.volume_dialog = VolumeSliderDialog(self, self.volume_button.mapToGlobal(QtCore.QPoint(-11, -72)))
+            self.volume_dialog.volume_slider.setValue(self.audio_output.volume() * 100)
+            self.volume_dialog.volume_slider.sliderReleased.connect(self.change_volume_value)
+            return
+
+        self.volume_dialog.show()
 
     def pause(self) -> None:
         self.audio_player.pause()
@@ -111,12 +98,13 @@ class ToolsWidget(QtWidgets.QWidget):
     def play(self) -> None:
         if not self.audio_player.hasAudio():
             self.set_audio(self.current_music_path)
-
+        
         self.start_timers()
 
         if self.current_music_path != self.new_music_path:
             self.current_music_path = self.new_music_path
             self.stop_button.click()
+            time.sleep(0.01)
             self.set_audio(self.current_music_path)
 
         self.audio_player.play()
@@ -132,8 +120,15 @@ class ToolsWidget(QtWidgets.QWidget):
         self.stop_update_timer()
 
     def start_timers(self) -> None:
-        self.audio_time_widget.calculate_timer.start(500)
+        self.audio_time_widget.calculate_timer.start(300)
         self.audio_time_widget.update_timer.start(500)
+
+    def switch_buttons(self, switch: bool) -> None:
+        self.listen_button.setEnabled(switch)
+        self.stop_button.setEnabled(switch)
+        self.pause_button.setEnabled(switch)
+        self.next_button.setEnabled(switch)
+        self.previous_button.setEnabled(switch)  
 
     def next_audio_button_click(self) -> None:
         self.index_row = (self.parent.music_widget.table.currentRow() + 1) if self.index_row < self.parent.music_widget.table.rowCount() - 1 else 0
@@ -154,3 +149,4 @@ class ToolsWidget(QtWidgets.QWidget):
 
     def set_audio(self, music_path: str):
         self.audio_player.setSource(QtCore.QUrl().fromLocalFile(music_path))
+        self.audio_metadata = self.audio_player.metaData()

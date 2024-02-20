@@ -26,6 +26,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tools_widget = ToolsWidget(self)
     
     def __setting_ui(self) -> None:
+        self.setWindowTitle('Shesterochka Player')
         self.resize(550, 440)
         self.setCentralWidget(self.central_widget)
         self.addToolBar(self.tool_bar)
@@ -52,20 +53,12 @@ class MainWindow(QtWidgets.QMainWindow):
     def open_action_clicked(self) -> None:
         names = self.music_widget.get_files_for_fill([QtCore.QFileInfo(elem) for elem in QtWidgets.QFileDialog().getOpenFileNames(self, 'Open files', filter='Music (*.mp3)')[0]])
         self.music_widget.fill_musics(self.music_widget.fill_database(names))
-        self.tools_widget.listen_button.setEnabled(True)
-        self.tools_widget.next_button.setEnabled(True)
-        self.tools_widget.previous_button.setEnabled(True)
-        self.tools_widget.stop_button.setEnabled(True)
-        self.tools_widget.pause_button.setEnabled(True)
-
+        self.tools_widget.switch_buttons(True)
+        
     def clear_action_clicked(self) -> None:
         self.music_widget.clear_musics()
-        self.tools_widget.listen_button.setEnabled(False)
-        self.tools_widget.stop_button.setEnabled(False)
-        self.tools_widget.pause_button.setEnabled(False)
-        self.tools_widget.next_button.setEnabled(False)
-        self.tools_widget.previous_button.setEnabled(False)        
-    
+        self.tools_widget.switch_buttons(False)
+
     def randomize_action_clicked(self) -> None:
         self.music_widget.randomize()
 

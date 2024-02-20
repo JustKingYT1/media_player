@@ -45,7 +45,22 @@ class AudioTimeWidget(QWidget):
 
         self.calculate_timer.timeout.connect(self.calculate_time)
         self.update_timer.timeout.connect(self.update_time)
+        self.slider.sliderPressed.connect(self.on_slider_pressed)
+        self.slider.sliderReleased.connect(self.on_slider_released)
     
+    def get_new_time_code(self) -> None:
+        return (int(self.total_time.split(':')[0]) * 60 + int(self.total_time.split(':')[1])) / 100 * self.slider.value()
+    
+    def set_new_audio_code(self) -> None:
+        self.parent.audio_player.setPosition(int(self.get_new_time_code() * 1000))
+    
+    def on_slider_released(self) -> None:
+        self.stop_flag = False
+        self.set_new_audio_code()
+
+    def on_slider_pressed(self) -> None:
+        self.stop_flag = True
+
     def get_current_time(self) -> str:
         return f'{int(self.parent.audio_player.position() / 1000 // 60)}:{int(self.parent.audio_player.position() / 1000 % 60):02d}'
     

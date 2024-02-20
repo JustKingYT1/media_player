@@ -46,7 +46,7 @@ class MusicWidget(QtWidgets.QWidget):
         if not self.parent.tools_widget.current_music_path:
             self.parent.tools_widget.current_music_path = self.table.model().index(self.table.currentRow(), 2).data()
         
-        if self.parent.tools_widget.audio_player.hasAudio() and self.parent.tools_widget.current_music_path == self.parent.tools_widget.new_music_path:
+        if self.parent.tools_widget.audio_player.hasAudio() and self.parent.tools_widget.current_music_path == self.parent.tools_widget.new_music_path and self.parent.tools_widget.audio_player.isPlaying():
             self.parent.tools_widget.pause()
             return
 
@@ -84,24 +84,33 @@ class MusicWidget(QtWidgets.QWidget):
 
     def fill_database(self, names: list[str]) -> None:
         list_not_unique_music = []
+        new_names = names.copy()
         for elem in names:
             try:
                 Musics.create(author=elem[0], name=elem[1], path=elem[2])
             except peewee.IntegrityError: 
                 elem.pop(2)
                 list_not_unique_music.append(elem)
+                new_names.remove(elem)
+                
 
         if len(list_not_unique_music) > 0:
             self.parent.show_message(
                 text=f'This musics are aploaded: {str(list_not_unique_music).replace("[", "").replace("]", "")}',
                 error=True
             )
+
+        names.clear()
+        print(new_names)
+
+        for name in new_names:
+            names.append(Musics.get(Musics.name == name[1]))
         
-        return Musics.select()
+        return names
 
     
     def fill_musics(self, music) -> None:
-        self.table.setRowCount(len(music))
+        self.table.setRowCount(len(Musics.select()))
         for model in music:
             for item in [['author', 0], ['name', 1], ['path', 2]]: 
                 itemWidget = QtWidgets.QTableWidgetItem(getattr(model, item[0]))
