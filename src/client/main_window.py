@@ -1,11 +1,8 @@
-from typing import Optional
-from PySide6 import QtWidgets, QtCore, QtGui, QtMultimedia
-from PySide6.QtCore import Qt
+from PySide6 import QtWidgets, QtCore, QtGui
 from PySide6.QtGui import QCloseEvent
-from PySide6.QtWidgets import QWidget
 from src.client.musics_widget import MusicWidget
 from src.client.tools_widget import ToolsWidget
-from src.client.audio_timer_widget import AudioTimeWidget
+from src.client.tools import switch_widgets
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -14,6 +11,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.__init_ui()
         self.__setting_ui()
         self.show()
+        # switch_widgets(widgets=self.__dict__, switch=False)
     
     def __init_ui(self) -> None:
         self.central_widget = QtWidgets.QWidget()
@@ -49,6 +47,10 @@ class MainWindow(QtWidgets.QMainWindow):
         message_box.setIcon(QtWidgets.QMessageBox.Icon.Critical if error else QtWidgets.QMessageBox.Icon.Information)
         message_box.setText(text)
         message_box.exec_()
+    
+    def moveEvent(self, event: QtGui.QMoveEvent) -> None:
+        if self.tools_widget.volume_dialog:
+            self.tools_widget.volume_dialog.move(self.tools_widget.volume_button.mapToGlobal(QtCore.QPoint(-11, -72)))
 
     def open_action_clicked(self) -> None:
         names = self.music_widget.get_files_for_fill([QtCore.QFileInfo(elem) for elem in QtWidgets.QFileDialog().getOpenFileNames(self, 'Open files', filter='Music (*.mp3)')[0]])

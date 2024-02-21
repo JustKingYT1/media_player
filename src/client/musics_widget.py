@@ -101,7 +101,6 @@ class MusicWidget(QtWidgets.QWidget):
             )
 
         names.clear()
-        print(new_names)
 
         for name in new_names:
             names.append(Musics.get(Musics.name == name[1]))

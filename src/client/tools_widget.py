@@ -1,16 +1,13 @@
-from typing import Optional
 from PySide6 import QtWidgets, QtCore, QtGui, QtMultimedia
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget
 from src.client.audio_timer_widget import AudioTimeWidget
-from src.settings import IMG_DIR
 import time
-from src.client.volume_dialog import VolumeSliderDialog
+from src.client.dialog_forms.volume_dialog import VolumeSliderDialog
+from src.client.tools import get_pixmap
 
-def get_pixmap(name: str) -> None:
-    return QtGui.QPixmap(f'{IMG_DIR}/{name}.png')
 
 class ToolsWidget(QtWidgets.QWidget):
+    audio_device_changed_signal = QtCore.Signal(QtMultimedia.QAudioDevice,)
     volume_dialog: VolumeSliderDialog = None
     stop_flag: bool = False
     current_time = 0
@@ -29,6 +26,7 @@ class ToolsWidget(QtWidgets.QWidget):
         self.buttons_h_layout = QtWidgets.QHBoxLayout()
         self.audio_player = QtMultimedia.QMediaPlayer(self)
         self.audio_output = QtMultimedia.QAudioOutput()
+        self.determine_audio_output_timer = QtCore.QTimer(self)
         self.audio_time_widget = AudioTimeWidget(self)
         self.listen_button = QtWidgets.QToolButton()
         self.pause_button = QtWidgets.QToolButton( )
@@ -59,11 +57,7 @@ class ToolsWidget(QtWidgets.QWidget):
         self.volume_button.setIcon(get_pixmap('volume'))
 
         if self.parent.music_widget.table.rowCount() == 0:
-            self.next_button.setEnabled(False)
-            self.previous_button.setEnabled(False)
-            self.listen_button.setEnabled(False)
-            self.stop_button.setEnabled(False)
-            self.pause_button.setEnabled(False)
+            self.switch_buttons(False)
 
         self.previous_button.clicked.connect(self.previous_audio_button_click)
         self.listen_button.clicked.connect(self.play)
@@ -72,6 +66,22 @@ class ToolsWidget(QtWidgets.QWidget):
         self.next_button.clicked.connect(self.next_audio_button_click)
         self.volume_button.clicked.connect(self.on_volume_button_click)
         self.audio_player.mediaStatusChanged.connect(self.on_media_status_changed)
+        self.audio_device_changed_signal.connect(self.change_audio_output)
+        self.determine_audio_output_timer.timeout.connect(self.determine_audio_output)
+        self.determine_audio_output_timer.start(500)
+
+    def change_audio_output(self, audio_device: QtMultimedia.QAudioDevice) -> None:
+        self.audio_output = QtMultimedia.QAudioOutput(audio_device)
+        self.audio_player.setAudioOutput(self.audio_output)
+    
+    def determine_audio_output(self) -> None:
+        devices = QtMultimedia.QMediaDevices().audioOutputs()
+        for device in devices:
+            if device.description() == 'Головной телефон (EW04 Hands-Free AG Audio)' and self.audio_output.device() != device:
+                self.audio_device_changed_signal.emit(device)
+
+        if self.audio_output.device() not in devices:
+            self.audio_device_changed_signal.emit(devices[0])
     
     def on_media_status_changed(self, status: QtMultimedia.QMediaPlayer.MediaStatus):
         if status == QtMultimedia.QMediaPlayer.MediaStatus.EndOfMedia:
@@ -85,7 +95,6 @@ class ToolsWidget(QtWidgets.QWidget):
             if self.volume_dialog.isVisible():
                 self.volume_dialog.hide()
                 return
-        
         self.open_volume_dialog()
 
     def open_volume_dialog(self) -> None:
@@ -108,7 +117,7 @@ class ToolsWidget(QtWidgets.QWidget):
         if self.current_music_path != self.new_music_path:
             self.current_music_path = self.new_music_path
             self.stop_button.click()
-            time.sleep(0.0008)
+            time.sleep(0.04)
             self.set_audio(self.current_music_path)
 
         self.audio_player.play()
