@@ -16,13 +16,20 @@ class Slider(QtWidgets.QSlider):
         self.installEventFilter(self)
         self.setOrientation(orientation)
         self.setStyleSheet(style)
+        # self.mousePressEvent = self.on_slider_mouse_press
+
+    # def on_slider_mouse_press(self, event):
+    #     pos = event.pos().x()
+    #     total_width = self.width()
+    #     value = int(pos / total_width * self.maximum())
+    #     self.setValue(value)
     
     def eventFilter(self, source, event):
-        if event.type() == QtCore.QEvent.MouseButtonPress and source is self:
+        if event.type() == QtCore.QEvent.Type.MouseButtonPress and source is self:
             self.grabMouse()
-        elif event.type() == QtCore.QEvent.MouseButtonRelease and source is self:
+        elif event.type() == QtCore.QEvent.Type.MouseButtonRelease and source is self:
             self.releaseMouse()
-        elif event.type() == QtCore.QEvent.MouseMove and source is self:
+        elif event.type() == QtCore.QEvent.Type.MouseMove and source is self:
             if self.isSliderDown():
                 cursor_position = event.globalPos()
                 slider_position = self.mapFromGlobal(cursor_position)

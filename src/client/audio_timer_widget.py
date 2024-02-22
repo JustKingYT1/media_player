@@ -45,8 +45,9 @@ class AudioTimeWidget(QWidget):
 
         self.calculate_timer.timeout.connect(self.calculate_time)
         self.update_timer.timeout.connect(self.update_time)
-        self.slider.sliderPressed.connect(self.on_slider_pressed)
-        self.slider.sliderReleased.connect(self.on_slider_released)
+        self.slider.sliderPressed.connect(self.on_slider_pressed) # для перетаскивания слайдера
+        # self.slider.valueChanged.connect(self.set_new_audio_code) # для нажатия по всей области слайдера 
+        self.slider.sliderReleased.connect(self.on_slider_released) # для перетаскивания слайдера
     
     def get_new_time_code(self) -> None:
         return (int(self.total_time.split(':')[0]) * 60 + int(self.total_time.split(':')[1])) / 100 * self.slider.value()

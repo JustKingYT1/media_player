@@ -95,6 +95,8 @@ class ToolsWidget(QtWidgets.QWidget):
             if self.volume_dialog.isVisible():
                 self.volume_dialog.hide()
                 return
+            
+        print(self.audio_output.device().description())
         self.open_volume_dialog()
 
     def open_volume_dialog(self) -> None:
@@ -144,14 +146,14 @@ class ToolsWidget(QtWidgets.QWidget):
         self.previous_button.setEnabled(switch)  
 
     def next_audio_button_click(self) -> None:
-        self.index_row = (self.parent.music_widget.table.currentRow() + 1) if self.index_row < self.parent.music_widget.table.rowCount() - 1 else 0
-    
+        self.index_row = (self.parent.music_widget.table.currentRow() + 1) if self.parent.music_widget.table.currentRow() < self.parent.music_widget.table.rowCount() - 1 else 0
+
         self.parent.music_widget.table.setCurrentCell(self.index_row, 1)
 
         self.play()
 
     def previous_audio_button_click(self) -> None:
-        self.index_row = (self.parent.music_widget.table.currentRow() - 1) if self.index_row > 0 else self.parent.music_widget.table.rowCount() - 1
+        self.index_row = (self.parent.music_widget.table.currentRow() - 1) if self.parent.music_widget.table.currentRow() > 0 else self.parent.music_widget.table.rowCount() - 1
 
         self.parent.music_widget.table.setCurrentCell(self.index_row, 1)
 
