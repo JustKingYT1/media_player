@@ -131,8 +131,8 @@ class ToolsWidget(QtWidgets.QWidget):
         self.audio_time_widget.update_timer.stop()
 
     def start_timers(self) -> None:
-        self.audio_time_widget.calculate_timer.start(500)
-        self.audio_time_widget.update_timer.start(950)
+        self.audio_time_widget.calculate_timer.start(200)
+        self.audio_time_widget.update_timer.start(300)
 
     def switch_buttons(self, switch: bool) -> None:
         self.listen_button.setEnabled(switch)
