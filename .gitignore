@@ -9,8 +9,12 @@ __pycache__/
 # Database
 *.db
 
+# mp3 files
+
+*.mp3
+
 # Directories 
-resources
+musics
 playerenv
 
 
