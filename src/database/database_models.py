@@ -4,10 +4,10 @@ import sys
 
 sys.path.append('../media_player')
 
-from settings import DB_PATH, DB_NAME, DEBUG
+from settings import DATABASE_PATH, DEBUG
 
 
-db = peewee.SqliteDatabase(database=f'{DB_PATH}/{DB_NAME}')
+db = peewee.SqliteDatabase(database=DATABASE_PATH)
 
 
 class BaseModel(peewee.Model):

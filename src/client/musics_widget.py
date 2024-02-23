@@ -4,7 +4,6 @@ import random
 import enum
 import peewee
 import eyed3
-import io
 import typing
 
 

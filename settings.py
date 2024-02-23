@@ -4,9 +4,10 @@ DEBUG = True
 
 # Database settings
 
-DB_PATH = '../media_player/src/database'
-DB_NAME = 'mediaPlayer.db'
+DATABASE_PATH = '../../../../../../media_player/src/database/mediaPlayer.db'
+
 
 # Client settings
 
-IMG_DIR = f'../media_player/resources/img'
+CONFIG_PATH = '../../../../../../media_player/resources/config.json'
+IMG_DIR = '../../../../../../media_player/resources/img'

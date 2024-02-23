@@ -59,10 +59,10 @@ class AudioTimeWidget(QWidget):
         self.set_new_audio_code()
 
     def get_current_time(self) -> str:
-        return f'{int(self.parent.audio_player.position() / 1000 // 60)}:{int(self.parent.audio_player.position() / 1000 % 60):02d}'
+        return f'{int(self.parent.audio_player.position() / 999.9999999 // 60)}:{int(self.parent.audio_player.position() / 999.9999999 % 60):02d}'
     
     def get_total_time(self) -> str:
-        return f'{int(self.parent.audio_player.duration() / 1000 // 60)}:{int(self.parent.audio_player.duration() / 1000 % 60):02d}'
+        return f'{int(self.parent.audio_player.duration() / 999.9999999 // 60)}:{int(self.parent.audio_player.duration() / 999.9999999 % 60):02d}'
     
     def calculate_time(self) -> None:
         self.total_time = self.get_total_time()
@@ -72,4 +72,4 @@ class AudioTimeWidget(QWidget):
         self.total_time_label.setText(self.total_time)
         self.current_time_label.setText(self.current_time)
         if not self.slider.mouse_pressed:
-            self.slider.setValue(((self.parent.audio_player.position() / 1000) / (self.parent.audio_player.duration() / 1000)) * 100) 
+            self.slider.setValue(((self.parent.audio_player.position() / 999.9999999) / (self.parent.audio_player.duration() / 999.9999999)) * 100) 

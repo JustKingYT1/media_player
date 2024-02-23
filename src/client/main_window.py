@@ -5,7 +5,8 @@ from src.client.tools_widget import ToolsWidget
 from src.client.tools import switch_widgets
 from src.client.slider import Slider
 import json
-import os
+from settings import CONFIG_PATH
+
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self) -> None:
@@ -90,12 +91,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def closeEvent(self, event: QCloseEvent) -> None:
-       
-        cur_file_path = os.path.abspath(__file__)
-
-        config_file_path = os.path.join(os.path.dirname(cur_file_path), '..', '..', 'resources', 'config.json')
         
-        with open(config_file_path, 'w') as file:
+        with open(CONFIG_PATH, 'w') as file:
             json.dump({'volume': self.tools_widget.volume_dialog.volume_slider.value()}, file)
 
         self.tools_widget.audio_player.stop()   

@@ -5,7 +5,7 @@ import time
 from src.client.dialog_forms.volume_dialog import VolumeSliderDialog
 from src.client.tools import get_pixmap
 import json
-import os
+from settings import CONFIG_PATH
 
 class ToolsWidget(QtWidgets.QWidget):
     audio_device_changed_signal = QtCore.Signal(QtMultimedia.QAudioDevice,)
@@ -74,10 +74,7 @@ class ToolsWidget(QtWidgets.QWidget):
         self.determine_audio_output_timer.start(500)
 
     def get_volume(self) -> int:
-        cur_file_path = os.path.abspath(__file__)
-        config_file_path = os.path.join(os.path.dirname(cur_file_path), '..', '..', 'resources', 'config.json')
-        
-        with open(config_file_path, 'r') as file:
+        with open(CONFIG_PATH, 'r') as file:
             data = json.load(file)['volume']
         
         return data
