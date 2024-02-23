@@ -1,4 +1,4 @@
-from PySide6 import QtWidgets, QtCore, QtGui, QtMultimedia
+from PySide6 import QtWidgets, QtCore, QtGui, QtMultimedia, QtBluetooth
 from PySide6.QtWidgets import QWidget
 from src.client.audio_timer_widget import AudioTimeWidget
 import time
@@ -77,7 +77,7 @@ class ToolsWidget(QtWidgets.QWidget):
     def determine_audio_output(self) -> None:
         devices = QtMultimedia.QMediaDevices().audioOutputs()
         for device in devices:
-            if device.description() == 'Головной телефон (EW04 Hands-Free AG Audio)' and self.audio_output.device() != device:
+            if self.audio_output.device() != device and 'Наушники' in device.description() :
                 self.audio_device_changed_signal.emit(device)
 
         if self.audio_output.device() not in devices:
@@ -95,8 +95,7 @@ class ToolsWidget(QtWidgets.QWidget):
             if self.volume_dialog.isVisible():
                 self.volume_dialog.hide()
                 return
-            
-        print(self.audio_output.device().description())
+       
         self.open_volume_dialog()
 
     def open_volume_dialog(self) -> None:
