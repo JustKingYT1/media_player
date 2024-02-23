@@ -26,24 +26,21 @@ class Slider(QtWidgets.QSlider):
                         (event.x() / self.width()) * \
                         (self.maximum() - self.minimum())
 
+    def wheelEvent(self, event):
+        event.ignore()
+
     def mousePressEvent(self, event):
-        # Устанавливаем флаг при нажатии кнопки мыши
         self.mouse_pressed = True
 
-        # Вычисляем новое значение слайдера, основываясь на позиции мыши
         new_value = self.get_new_value(event)
         
-        # Устанавливаем новое значение слайдера
         self.setValue(int(new_value))
 
     def mouseMoveEvent(self, event):
         if self.mouse_pressed:
-            # Вычисляем новое значение слайдера при движении мыши
             new_value = self.get_new_value(event)
             
-            # Устанавливаем новое значение слайдера
             self.setValue(int(new_value))
 
     def mouseReleaseEvent(self, event):
-        # Сбрасываем флаг при отпускании кнопки мыши
         self.mouse_pressed = False

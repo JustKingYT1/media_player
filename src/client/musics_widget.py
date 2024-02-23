@@ -80,30 +80,38 @@ class MusicWidget(QtWidgets.QWidget):
 
     def get_files_for_fill(self, list_files: list[QtCore.QFileInfo]) -> tuple[str]:
         path_to_files = [str(elem.absoluteFilePath()) for elem in list_files]
+        names_files = sorted([str(elem.fileName()) for elem in list_files], key=lambda x: x)
         loaded_files = sorted([eyed3.load(file) for file in path_to_files], key=lambda x: x.tag.title)
         
-        return loaded_files
+        return loaded_files, names_files
 
-    def fill_database(self, loaded_files: list[eyed3.AudioFile]) -> None:
+    def fill_database(self, loaded_files: list[eyed3.AudioFile], names_files: list[str]) -> None:
         list_not_unique_music = [] 
-        new_names = loaded_files.copy()
-        for item in loaded_files:
+        new_loads = loaded_files.copy()
+        for item, name in zip(loaded_files, names_files):
             try:
-                Musics.create(artist=item.tag.artist, title=item.tag.title, path=item.path)
+                Musics.create(artist=item.tag.artist \
+                              if item.tag.artist else 'Unknown',
+                              title=item.tag.title \
+                              if item.tag.title else name, 
+                              path=item.path)
             except peewee.IntegrityError: 
-                list_not_unique_music.append(f'{item.tag.artist} - {item.tag.title}')
-                new_names.remove(item)
+                list_not_unique_music.append(f'{item.tag.artist if item.tag.artist else 'Unknown'} - {item.tag.title if item.tag.title else name}')
+                new_loads.remove(item)
+
+            if not item.tag.title:
+                item.tag.title = name
                 
 
         if len(list_not_unique_music) > 0:
             self.parent.show_message(
-                text=f'This musics are aploaded: {str(list_not_unique_music).replace("[", "").replace("]", "")}',
+                text=f'This musics are uploaded: {str(list_not_unique_music).replace("[", "").replace("]", "")}',
                 error=True
             )
 
         loaded_files.clear()
 
-        for item in new_names:
+        for item in new_loads:
             loaded_files.append(Musics.get(Musics.title == item.tag.title))
         
         return loaded_files
