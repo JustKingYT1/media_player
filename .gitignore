@@ -9,8 +9,13 @@ __pycache__/
 # Database
 *.db
 
+# Mp3 files
+
+*.mp3
+
 # Directories 
 playerenv
+musics/
 
 # Distribution / packaging
 .Python
