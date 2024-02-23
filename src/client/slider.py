@@ -1,9 +1,10 @@
-from PySide6 import QtWidgets, QtCore, QtGui
+from PySide6 import QtWidgets, QtCore, QtGui, QtBluetooth
 from PySide6.QtGui import QMouseEvent
 
 
 class Slider(QtWidgets.QSlider):
     current_slide_seconds = 0
+    mouse_pressed = False
     def __init__(self, parent, orientation: QtCore.Qt.Orientation, style: str) -> None:
         super().__init__(parent)
         self.parent = parent
@@ -16,23 +17,34 @@ class Slider(QtWidgets.QSlider):
         self.installEventFilter(self)
         self.setOrientation(orientation)
         self.setStyleSheet(style)
-        # self.mousePressEvent = self.on_slider_mouse_press
 
-    # def on_slider_mouse_press(self, event):
-    #     pos = event.pos().x()
-    #     total_width = self.width()
-    #     value = int(pos / total_width * self.maximum())
-    #     self.setValue(value)
-    
-    def eventFilter(self, source, event):
-        if event.type() == QtCore.QEvent.Type.MouseButtonPress and source is self:
-            self.grabMouse()
-        elif event.type() == QtCore.QEvent.Type.MouseButtonRelease and source is self:
-            self.releaseMouse()
-        elif event.type() == QtCore.QEvent.Type.MouseMove and source is self:
-            if self.isSliderDown():
-                cursor_position = event.globalPos()
-                slider_position = self.mapFromGlobal(cursor_position)
-                value = self.minimum() + (self.maximum() - self.minimum()) * slider_position.x() / self.width()
-                self.setValue(int(value))
-        return super().eventFilter(source, event)
+    def get_new_value(self, event) -> int:
+        return self.maximum() - \
+            (event.y() / self.height()) * \
+            (self.maximum() - self.minimum()) \
+            if self.orientation() == QtCore.Qt.Orientation.Vertical else \
+                self.minimum() + \
+                        (event.x() / self.width()) * \
+                        (self.maximum() - self.minimum())
+
+    def mousePressEvent(self, event):
+        # Устанавливаем флаг при нажатии кнопки мыши
+        self.mouse_pressed = True
+
+        # Вычисляем новое значение слайдера, основываясь на позиции мыши
+        new_value = self.get_new_value(event)
+        
+        # Устанавливаем новое значение слайдера
+        self.setValue(int(new_value))
+
+    def mouseMoveEvent(self, event):
+        if self.mouse_pressed:
+            # Вычисляем новое значение слайдера при движении мыши
+            new_value = self.get_new_value(event)
+            
+            # Устанавливаем новое значение слайдера
+            self.setValue(int(new_value))
+
+    def mouseReleaseEvent(self, event):
+        # Сбрасываем флаг при отпускании кнопки мыши
+        self.mouse_pressed = False

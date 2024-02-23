@@ -1,10 +1,10 @@
-from PySide6 import QtWidgets, QtCore, QtGui, QtMultimedia, QtBluetooth
+from PySide6 import QtWidgets, QtCore, QtGui, QtMultimedia
 from PySide6.QtWidgets import QWidget
 from src.client.audio_timer_widget import AudioTimeWidget
 import time
+from src.client.slider import Slider
 from src.client.dialog_forms.volume_dialog import VolumeSliderDialog
 from src.client.tools import get_pixmap
-
 
 class ToolsWidget(QtWidgets.QWidget):
     audio_device_changed_signal = QtCore.Signal(QtMultimedia.QAudioDevice,)
@@ -87,7 +87,8 @@ class ToolsWidget(QtWidgets.QWidget):
         if status == QtMultimedia.QMediaPlayer.MediaStatus.EndOfMedia:
             self.next_audio_button_click()
     
-    def change_volume_value(self) -> None:
+    def change_volume_value(self, event) -> None:
+        Slider.mouseMoveEvent(self.volume_dialog.volume_slider, event)
         self.audio_output.setVolume(float(self.volume_dialog.volume_slider.value()) / 100)
     
     def on_volume_button_click(self) -> None:
@@ -102,7 +103,7 @@ class ToolsWidget(QtWidgets.QWidget):
         if not self.volume_dialog:
             self.volume_dialog = VolumeSliderDialog(self, self.volume_button.mapToGlobal(QtCore.QPoint(-11, -72)))
             self.volume_dialog.volume_slider.setValue(self.audio_output.volume() * 100)
-            self.volume_dialog.volume_slider.sliderReleased.connect(self.change_volume_value)
+            self.volume_dialog.volume_slider.mouseMoveEvent = self.change_volume_value
             return
 
         self.volume_dialog.show()

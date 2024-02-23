@@ -4,6 +4,7 @@ from PySide6 import QtGui, QtCore
 from src.client.slider import Slider
 from PySide6.QtWidgets import QApplication, QWidget, QSlider, QVBoxLayout
 from PySide6.QtCore import Qt, QPoint
+import time
 
 class AudioTimeWidget(QWidget):
     stop_flag: bool = False
@@ -45,22 +46,17 @@ class AudioTimeWidget(QWidget):
 
         self.calculate_timer.timeout.connect(self.calculate_time)
         self.update_timer.timeout.connect(self.update_time)
-        self.slider.sliderPressed.connect(self.on_slider_pressed) # для перетаскивания слайдера
-        # self.slider.valueChanged.connect(self.set_new_audio_code) # для нажатия по всей области слайдера 
-        self.slider.sliderReleased.connect(self.on_slider_released) # для перетаскивания слайдера
+        self.slider.mouseReleaseEvent = self.newMouseReleaseEvent
     
     def get_new_time_code(self) -> None:
         return (int(self.total_time.split(':')[0]) * 60 + int(self.total_time.split(':')[1])) / 100 * self.slider.value()
     
     def set_new_audio_code(self) -> None:
         self.parent.audio_player.setPosition(int(self.get_new_time_code() * 1000))
-    
-    def on_slider_released(self) -> None:
-        self.stop_flag = False
-        self.set_new_audio_code()
 
-    def on_slider_pressed(self) -> None:
-        self.stop_flag = True
+    def newMouseReleaseEvent(self, event) -> None:
+        Slider.mouseReleaseEvent(self.slider, event)
+        self.set_new_audio_code()
 
     def get_current_time(self) -> str:
         return f'{int(self.parent.audio_player.position() / 1000 // 60)}:{int(self.parent.audio_player.position() / 1000 % 60):02d}'
@@ -75,5 +71,5 @@ class AudioTimeWidget(QWidget):
     def update_time(self) -> None:
         self.total_time_label.setText(self.total_time)
         self.current_time_label.setText(self.current_time)
-        if not self.stop_flag:
+        if not self.slider.mouse_pressed:
             self.slider.setValue(((self.parent.audio_player.position() / 1000) / (self.parent.audio_player.duration() / 1000)) * 100) 
