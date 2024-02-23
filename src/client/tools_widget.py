@@ -119,7 +119,7 @@ class ToolsWidget(QtWidgets.QWidget):
         if self.current_music_path != self.new_music_path:
             self.current_music_path = self.new_music_path
             self.stop_button.click()
-            time.sleep(0.04)
+            time.sleep(0.006)
             self.set_audio(self.current_music_path)
 
         self.audio_player.play()
@@ -164,4 +164,3 @@ class ToolsWidget(QtWidgets.QWidget):
 
     def set_audio(self, music_path: str):
         self.audio_player.setSource(QtCore.QUrl().fromLocalFile(music_path))
-        self.audio_metadata = self.audio_player.metaData()

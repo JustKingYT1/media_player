@@ -1,5 +1,4 @@
-from PySide6 import QtWidgets, QtCore, QtGui, QtBluetooth
-from PySide6.QtGui import QMouseEvent
+from PySide6 import QtWidgets, QtCore, QtGui
 
 
 class Slider(QtWidgets.QSlider):

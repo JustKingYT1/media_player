@@ -3,11 +3,13 @@ from src.database.database_models import Musics
 import random
 import enum
 import peewee
+import eyed3
+import io
+import typing
 
 
-class TableRoles(enum.Enum):
-    FilePath = QtCore.Qt.ItemDataRole.UserRole
-
+class TypesData(enum.Enum):
+    ImgRole: int = 1001
 
 class MusicWidget(QtWidgets.QWidget):
     flag: int = 0
@@ -78,20 +80,19 @@ class MusicWidget(QtWidgets.QWidget):
 
     def get_files_for_fill(self, list_files: list[QtCore.QFileInfo]) -> tuple[str]:
         path_to_files = [str(elem.absoluteFilePath()) for elem in list_files]
-        names = [elem.fileName().split(' - ') for elem in list_files]
-        [elem.append(item) for elem, item in zip(names, path_to_files)]
-        return names
+        loaded_files = sorted([eyed3.load(file) for file in path_to_files], key=lambda x: x.tag.title)
+        
+        return loaded_files
 
-    def fill_database(self, names: list[str]) -> None:
-        list_not_unique_music = []
-        new_names = names.copy()
-        for elem in names:
+    def fill_database(self, loaded_files: list[eyed3.AudioFile]) -> None:
+        list_not_unique_music = [] 
+        new_names = loaded_files.copy()
+        for item in loaded_files:
             try:
-                Musics.create(author=elem[0], name=elem[1], path=elem[2])
+                Musics.create(artist=item.tag.artist, title=item.tag.title, path=item.path)
             except peewee.IntegrityError: 
-                elem.pop(2)
-                list_not_unique_music.append(elem)
-                new_names.remove(elem)
+                list_not_unique_music.append(f'{item.tag.artist} - {item.tag.title}')
+                new_names.remove(item)
                 
 
         if len(list_not_unique_music) > 0:
@@ -100,18 +101,18 @@ class MusicWidget(QtWidgets.QWidget):
                 error=True
             )
 
-        names.clear()
+        loaded_files.clear()
 
-        for name in new_names:
-            names.append(Musics.get(Musics.name == name[1]))
+        for item in new_names:
+            loaded_files.append(Musics.get(Musics.title == item.tag.title))
         
-        return names
+        return loaded_files
 
     
-    def fill_musics(self, music) -> None:
+    def fill_musics(self, musics: list[eyed3.AudioFile] | typing.Any) -> None:
         self.table.setRowCount(len(Musics.select()))
-        for model in music:
-            for item in [['author', 0], ['name', 1], ['path', 2]]: 
+        for model in musics:
+            for item in [['artist', 0], ['title', 1], ['path', 2]]: 
                 itemWidget = QtWidgets.QTableWidgetItem(getattr(model, item[0]))
                 self.table.setItem(self.row, item[1], itemWidget)
             self.row += 1     
@@ -124,6 +125,6 @@ class MusicWidget(QtWidgets.QWidget):
         self.parent.tools_widget.stop()
         self.clear_database()
         self.table.clearContents()
-        self.row = 0
         self.table.setRowCount(0)
+        self.row = 0
 

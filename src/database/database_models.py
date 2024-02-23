@@ -16,13 +16,13 @@ class BaseModel(peewee.Model):
 
 
 class Musics(BaseModel):
-    author = peewee.CharField()
-    name = peewee.CharField()
+    artist = peewee.CharField()
+    title = peewee.CharField()
     path = peewee.CharField(unique=True)
     class Meta:
         database = db
         indexes = (
-            (('author', 'name'), True),
+            (('artist', 'title'), True),
         )
 
 
