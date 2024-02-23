@@ -13,7 +13,7 @@ class AudioTimeWidget(QWidget):
         self.parent = parent
         self.__init_ui()
         self.__setup_ui()
-        self.show()
+
 
     def __init_ui(self) -> None:
         self.main_h_layout = QHBoxLayout()

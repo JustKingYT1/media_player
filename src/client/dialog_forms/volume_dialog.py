@@ -3,12 +3,10 @@ from src.client.slider import Slider
 
 
 class VolumeSliderDialog(QtWidgets.QDialog):
-    def __init__(self, parent: QtWidgets.QWidget, parent_pos: QtCore.QPoint) -> None:
+    def __init__(self, parent: QtWidgets.QWidget) -> None:
         super().__init__(parent)
         self.__init_ui()
         self.__setting_ui()
-        self.move(parent_pos)
-        self.show()
     
     def __init_ui(self) -> None:
         self.main_h_layout = QtWidgets.QHBoxLayout()
