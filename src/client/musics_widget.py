@@ -79,9 +79,10 @@ class MusicWidget(QtWidgets.QWidget):
 
     def get_files_for_fill(self, list_files: list[QtCore.QFileInfo]) -> tuple[str]:
         path_to_files = [str(elem.absoluteFilePath()) for elem in list_files]
+        print(path_to_files)
         names_files = sorted([str(elem.fileName()) for elem in list_files], key=lambda x: x)
-        loaded_files = sorted([eyed3.load(file) for file in path_to_files], key=lambda x: x.tag.title)
-        
+        loaded_files = [eyed3.load(file) for file in path_to_files]
+        print(loaded_files)
         return loaded_files, names_files
 
     def fill_database(self, loaded_files: list[eyed3.AudioFile], names_files: list[str]) -> None:
@@ -89,18 +90,18 @@ class MusicWidget(QtWidgets.QWidget):
         new_loads = loaded_files.copy()
         for item, name in zip(loaded_files, names_files):
             try:
-                Musics.create(artist=item.tag.artist \
-                              if item.tag.artist else 'Unknown',
-                              title=item.tag.title \
-                              if item.tag.title else name, 
+                print(item)
+                if not item.tag:
+                    item.initTag()
+
+                item.tag.title = name if not item.tag.title else item.tag.title
+                item.tag.artist = ('Unknown' if not item.tag.artist else item.tag.artist)
+                Musics.create(artist=item.tag.artist,
+                              title=item.tag.title, 
                               path=item.path)
             except peewee.IntegrityError: 
-                list_not_unique_music.append(f'{item.tag.artist if item.tag.artist else 'Unknown'} - {item.tag.title if item.tag.title else name}')
+                list_not_unique_music.append(f'{item.tag.artist if item.tag.artist else "Unknown"} - {item.tag.title if item.tag.title else name}')
                 new_loads.remove(item)
-
-            if not item.tag.title:
-                item.tag.title = name
-                
 
         if len(list_not_unique_music) > 0:
             self.parent.show_message(
