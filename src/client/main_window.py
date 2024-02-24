@@ -78,8 +78,8 @@ class MainWindow(QtWidgets.QMainWindow):
         return super().moveEvent(event)
 
     def open_action_clicked(self) -> None:
-        loaded_files, names_files = self.music_widget.get_files_for_fill([QtCore.QFileInfo(elem) for elem in QtWidgets.QFileDialog().getOpenFileNames(self, 'Open files', filter='Music (*.mp3)')[0]])
-        self.music_widget.fill_musics(self.music_widget.fill_database(loaded_files, names_files))
+        loaded_files, names_files, path_to_files = self.music_widget.get_files_for_fill([QtCore.QFileInfo(elem) for elem in QtWidgets.QFileDialog().getOpenFileNames(self, 'Open files', filter='Music (*.mp3; *.wav; *.opus)')[0]])
+        self.music_widget.fill_musics(self.music_widget.fill_database(loaded_files, names_files, path_to_files))
         self.tools_widget.switch_buttons(True)
         
     def clear_action_clicked(self) -> None:

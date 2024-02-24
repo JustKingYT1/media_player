@@ -72,4 +72,4 @@ class AudioTimeWidget(QWidget):
         self.total_time_label.setText(self.total_time)
         self.current_time_label.setText(self.current_time)
         if not self.slider.mouse_pressed:
-            self.slider.setValue(((self.parent.audio_player.position() / 999.9999999) / (self.parent.audio_player.duration() / 999.9999999)) * 100) 
+            self.slider.setValue(((self.parent.audio_player.position() / 1000) / (self.parent.audio_player.duration() / 1000) if self.parent.audio_player.duration() > 0 else 1) * 100) 

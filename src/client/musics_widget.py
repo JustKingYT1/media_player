@@ -3,8 +3,7 @@ from src.database.database_models import Musics
 import random
 import enum
 import peewee
-import eyed3
-import typing
+import tinytag
 
 
 class TypesData(enum.Enum):
@@ -79,28 +78,22 @@ class MusicWidget(QtWidgets.QWidget):
 
     def get_files_for_fill(self, list_files: list[QtCore.QFileInfo]) -> tuple[str]:
         path_to_files = [str(elem.absoluteFilePath()) for elem in list_files]
-        print(path_to_files)
-        names_files = sorted([str(elem.fileName()) for elem in list_files], key=lambda x: x)
-        loaded_files = [eyed3.load(file) for file in path_to_files]
-        print(loaded_files)
-        return loaded_files, names_files
+        names_files = [str(elem.fileName()) for elem in list_files]
+        loaded_files = [tinytag.TinyTag.get(file) for file in path_to_files]
+        return loaded_files, names_files, path_to_files
 
-    def fill_database(self, loaded_files: list[eyed3.AudioFile], names_files: list[str]) -> None:
+    def fill_database(self, loaded_files: list[tinytag.TinyTag], names_files: list[str], path_to_files: list[str]) -> None:
         list_not_unique_music = [] 
         new_loads = loaded_files.copy()
-        for item, name in zip(loaded_files, names_files):
+        for item, name, path in zip(loaded_files, names_files, path_to_files):
             try:
-                print(item)
-                if not item.tag:
-                    item.initTag()
-
-                item.tag.title = name if not item.tag.title else item.tag.title
-                item.tag.artist = ('Unknown' if not item.tag.artist else item.tag.artist)
-                Musics.create(artist=item.tag.artist,
-                              title=item.tag.title, 
-                              path=item.path)
+                item.artist = 'Unknown' if not item.artist else item.artist
+                item.title = name.split('.')[0] if not item.title else item.title
+                Musics.create(artist=item.artist,
+                              title=item.title, 
+                              path=path)
             except peewee.IntegrityError: 
-                list_not_unique_music.append(f'{item.tag.artist if item.tag.artist else "Unknown"} - {item.tag.title if item.tag.title else name}')
+                list_not_unique_music.append(f'{item.artist} - {item.title}')
                 new_loads.remove(item)
 
         if len(list_not_unique_music) > 0:
@@ -112,12 +105,12 @@ class MusicWidget(QtWidgets.QWidget):
         loaded_files.clear()
 
         for item in new_loads:
-            loaded_files.append(Musics.get(Musics.title == item.tag.title))
+            loaded_files.append(Musics.get(Musics.title == item.title))
         
         return loaded_files
 
     
-    def fill_musics(self, musics: list[eyed3.AudioFile] | typing.Any) -> None:
+    def fill_musics(self, musics) -> None:
         self.table.setRowCount(len(Musics.select()))
         for model in musics:
             for item in [['artist', 0], ['title', 1], ['path', 2]]: 
