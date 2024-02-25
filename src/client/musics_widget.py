@@ -5,15 +5,21 @@ import enum
 import peewee
 import tinytag
 import threading
+import time
 
 
 class TypesData(enum.Enum):
     ImgRole: int = 1001
 
+
+
 class MusicWidget(QtWidgets.QWidget):
     flag: int = 0
     row: int = 0
+    stop_flag: bool = False
     add_music_signal = QtCore.Signal(str, str, str)
+    show_message_signal = QtCore.Signal(str, bool)
+    add_music_slot = QtCore.Slot(str, str, str)
     def __init__(self, parent: QtWidgets.QWidget) -> None:
         super().__init__(parent=parent)
         self.parent = parent
@@ -43,6 +49,7 @@ class MusicWidget(QtWidgets.QWidget):
         self.table.currentItemChanged.connect(self.current_item_changed)
 
         self.add_music_signal.connect(self.add_music)
+        self.show_message_signal.connect(self.show_message)
 
         threading.Thread(target=self.fill_musics).start()
     
@@ -87,18 +94,19 @@ class MusicWidget(QtWidgets.QWidget):
         return loaded_files, names_files, path_to_files
     
     def update_musics(self, loaded_files: list[tinytag.TinyTag], names_files: list[str], path_to_files: list[str]) -> None:
-        threading.Thread(target=self.fill_database, args=(loaded_files, names_files, path_to_files)).start()
+        new_thread = threading.Thread(target=self.fill_database, args=(loaded_files, names_files, path_to_files))
+        new_thread.start()
+
 
     def show_message(self, text, error) -> None:
-        QtWidgets.QMessageBox(text=text, 
-                              buttons=QtWidgets.QMessageBox.StandardButton.Ok,
-                              icon=QtWidgets.QMessageBox.Icon.Critical if error \
-                              else QtWidgets.QMessageBox.Icon.Information,
-                              parent=self).show()
+        self.parent.show_message(text, error)
 
     def fill_database(self, loaded_files: list[tinytag.TinyTag], names_files: list[str], path_to_files: list[str]):
-        list_not_unique_music = [] 
+        self.list_not_unique_music = [] 
         for item, name, path in zip(loaded_files, names_files, path_to_files):
+            if self.stop_flag:  
+                exit()          
+                
             try:
                 item.artist = 'Unknown' if not item.artist else item.artist
                 item.title = name.split('.')[0] if not item.title else item.title
@@ -116,22 +124,28 @@ class MusicWidget(QtWidgets.QWidget):
                 )
 
             except peewee.IntegrityError: 
-                list_not_unique_music.append(f'{item.artist} - {item.title}')
+                self.list_not_unique_music.append(f'{item.artist} - {item.title}')
+        
+        if len(self.list_not_unique_music) > 0:
+            self.show_message_signal.emit(
+                f'This musics are uploaded: {str(self.list_not_unique_music).replace("[", "").replace("]", "")}',
+                True
+            )
+            self.list_not_unique_music.clear()
 
-        if len(list_not_unique_music) > 0:
-            self.show_message(
-                text=f'This musics are uploaded: {str(list_not_unique_music).replace("[", "").replace("]", "")}',
-                error=True
+    def fill_musics(self, musics=Musics.select()) -> None:  
+        self.table.setRowCount(len(Musics.select()))
+        for model in musics:
+            if self.stop_flag:  
+                exit()          
+
+            self.add_music_signal.emit(
+                model.artist,
+                model.title,
+                model.path
             )
 
-    def fill_musics(self, musics=Musics.select()) -> None:
-        self.table.setRowCount(len(Musics.select()))
-        for model in musics:                
-                self.add_music_signal.emit(
-                    model.artist,
-                    model.title,
-                    model.path
-                )
+            time.sleep(0.03)
 
     QtCore.Slot(str, str, str)
     def add_music(self, artist: str, title: str, path: str) -> None:

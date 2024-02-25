@@ -21,9 +21,9 @@ class Musics(BaseModel):
     path = peewee.CharField(unique=True)
     class Meta:
         database = db
-        indexes = (
-            (('artist', 'title'), True),
-        )
+        # indexes = (
+        #     (('artist', 'title'), True),
+        # )
 
 
 class Users(BaseModel):
