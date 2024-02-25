@@ -6,6 +6,7 @@ from src.client.tools import switch_widgets
 from src.client.slider import Slider
 import json
 from settings import CONFIG_PATH
+import multiprocessing
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -78,8 +79,13 @@ class MainWindow(QtWidgets.QMainWindow):
         return super().moveEvent(event)
 
     def open_action_clicked(self) -> None:
-        loaded_files, names_files, path_to_files = self.music_widget.get_files_for_fill([QtCore.QFileInfo(elem) for elem in QtWidgets.QFileDialog().getOpenFileNames(self, 'Open files', filter='Music (*.mp3; *.wav; *.opus)')[0]])
-        self.music_widget.fill_musics(self.music_widget.fill_database(loaded_files, names_files, path_to_files))
+        class CustomQFileDialog(QtWidgets.QFileDialog):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.setOption(QtWidgets.QFileDialog.Option.DontUseNativeDialog)
+
+        loaded_files, names_files, path_to_files = self.music_widget.get_files_for_fill([QtCore.QFileInfo(elem) for elem in CustomQFileDialog().getOpenFileNames(self, 'Open files', filter='Music (*.mp3; *.wav; *.opus;)')[0]])
+        self.music_widget.update_musics(loaded_files, names_files, path_to_files)
         self.tools_widget.switch_buttons(True)
         
     def clear_action_clicked(self) -> None:

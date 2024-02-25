@@ -118,7 +118,7 @@ class ToolsWidget(QtWidgets.QWidget):
         if self.current_music_path != self.new_music_path:
             self.current_music_path = self.new_music_path
             self.stop_button.click()
-            time.sleep(0.02)
+            time.sleep(0.01)
             self.set_audio(self.current_music_path)
 
         self.audio_player.play()

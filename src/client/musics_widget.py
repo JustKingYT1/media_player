@@ -4,6 +4,7 @@ import random
 import enum
 import peewee
 import tinytag
+import threading
 
 
 class TypesData(enum.Enum):
@@ -12,6 +13,7 @@ class TypesData(enum.Enum):
 class MusicWidget(QtWidgets.QWidget):
     flag: int = 0
     row: int = 0
+    add_music_signal = QtCore.Signal(str, str, str)
     def __init__(self, parent: QtWidgets.QWidget) -> None:
         super().__init__(parent=parent)
         self.parent = parent
@@ -40,7 +42,9 @@ class MusicWidget(QtWidgets.QWidget):
         self.table.cellClicked.connect(self.click_cell)
         self.table.currentItemChanged.connect(self.current_item_changed)
 
-        self.fill_musics(Musics.select())
+        self.add_music_signal.connect(self.add_music)
+
+        threading.Thread(target=self.fill_musics).start()
     
     def click_cell(self) -> None:
         if not self.parent.tools_widget.current_music_path:
@@ -81,42 +85,60 @@ class MusicWidget(QtWidgets.QWidget):
         names_files = [str(elem.fileName()) for elem in list_files]
         loaded_files = [tinytag.TinyTag.get(file) for file in path_to_files]
         return loaded_files, names_files, path_to_files
+    
+    def update_musics(self, loaded_files: list[tinytag.TinyTag], names_files: list[str], path_to_files: list[str]) -> None:
+        threading.Thread(target=self.fill_database, args=(loaded_files, names_files, path_to_files)).start()
 
-    def fill_database(self, loaded_files: list[tinytag.TinyTag], names_files: list[str], path_to_files: list[str]) -> None:
+    def show_message(self, text, error) -> None:
+        QtWidgets.QMessageBox(text=text, 
+                              buttons=QtWidgets.QMessageBox.StandardButton.Ok,
+                              icon=QtWidgets.QMessageBox.Icon.Critical if error \
+                              else QtWidgets.QMessageBox.Icon.Information,
+                              parent=self).show()
+
+    def fill_database(self, loaded_files: list[tinytag.TinyTag], names_files: list[str], path_to_files: list[str]):
         list_not_unique_music = [] 
-        new_loads = loaded_files.copy()
         for item, name, path in zip(loaded_files, names_files, path_to_files):
             try:
                 item.artist = 'Unknown' if not item.artist else item.artist
                 item.title = name.split('.')[0] if not item.title else item.title
+
                 Musics.create(artist=item.artist,
                               title=item.title, 
                               path=path)
+                
+                self.table.setRowCount(len(Musics.select()))        
+
+                self.add_music_signal.emit(
+                    item.artist,
+                    item.title,
+                    path
+                )
+
             except peewee.IntegrityError: 
                 list_not_unique_music.append(f'{item.artist} - {item.title}')
-                new_loads.remove(item)
 
         if len(list_not_unique_music) > 0:
-            self.parent.show_message(
+            self.show_message(
                 text=f'This musics are uploaded: {str(list_not_unique_music).replace("[", "").replace("]", "")}',
                 error=True
             )
 
-        loaded_files.clear()
-
-        for item in new_loads:
-            loaded_files.append(Musics.get(Musics.title == item.title))
-        
-        return loaded_files
-
-    
-    def fill_musics(self, musics) -> None:
+    def fill_musics(self, musics=Musics.select()) -> None:
         self.table.setRowCount(len(Musics.select()))
-        for model in musics:
-            for item in [['artist', 0], ['title', 1], ['path', 2]]: 
-                itemWidget = QtWidgets.QTableWidgetItem(getattr(model, item[0]))
-                self.table.setItem(self.row, item[1], itemWidget)
-            self.row += 1     
+        for model in musics:                
+                self.add_music_signal.emit(
+                    model.artist,
+                    model.title,
+                    model.path
+                )
+
+    QtCore.Slot(str, str, str)
+    def add_music(self, artist: str, title: str, path: str) -> None:
+        for index, item in enumerate([artist, title, path]): 
+            itemWidget = QtWidgets.QTableWidgetItem(item)
+            self.table.setItem(self.row, index, itemWidget)
+        self.row += 1     
 
     def clear_database(self) -> None:
         for model in Musics.select():
