@@ -55,9 +55,6 @@ class ToolsWidget(QtWidgets.QWidget):
         self.previous_button.setIcon(get_pixmap('previous'))
         self.volume_button.setIcon(get_pixmap('volume'))
 
-        if self.parent.music_widget.table.rowCount() == 0:
-            self.switch_buttons(False)
-
         self.volume_dialog.volume_slider.setValue(self.get_volume())
         self.change_volume_value(None)
     
@@ -111,11 +108,12 @@ class ToolsWidget(QtWidgets.QWidget):
         self.audio_player.pause()
 
     def play(self) -> None:
+        print(self.current_music_path, self.new_music_path)
         if not self.audio_player.hasAudio():
             self.set_audio(self.current_music_path)
             self.start_timers()
 
-        if self.current_music_path != self.new_music_path:
+        if self.current_music_path != self.new_music_path and self.new_music_path:
             self.current_music_path = self.new_music_path
             self.stop_button.click()
             time.sleep(0.01)
@@ -156,4 +154,5 @@ class ToolsWidget(QtWidgets.QWidget):
         self.audio_player.stop()
 
     def set_audio(self, music_path: str):
+        print(music_path)
         self.audio_player.setSource(QtCore.QUrl().fromLocalFile(music_path))

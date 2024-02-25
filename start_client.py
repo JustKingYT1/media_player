@@ -1,4 +1,5 @@
 from sys import argv, path
+from settings import *
 
 path.append('C:/media_player/')
 

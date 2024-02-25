@@ -1,6 +1,7 @@
 from PySide6 import QtGui, QtWidgets, QtCore
 import settings
 
+
 def get_pixmap(name: str) -> None:
     return QtGui.QPixmap(f'{settings.IMG_DIR}/{name}.png')
 

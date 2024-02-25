@@ -54,20 +54,20 @@ class MusicWidget(QtWidgets.QWidget):
         threading.Thread(target=self.fill_musics).start()
     
     def click_cell(self) -> None:
-        if not self.parent.tools_widget.current_music_path:
+        if not self.parent.tools_widget.audio_player.hasAudio():
             self.parent.tools_widget.current_music_path = self.table.model().index(self.table.currentRow(), 2).data()
         
-        if self.parent.tools_widget.audio_player.hasAudio() and self.parent.tools_widget.current_music_path == self.parent.tools_widget.new_music_path and self.parent.tools_widget.audio_player.isPlaying():
+        if self.parent.tools_widget.current_music_path == self.parent.tools_widget.new_music_path and self.parent.tools_widget.audio_player.isPlaying():
             self.parent.tools_widget.pause()
             return
-
+        
         self.parent.tools_widget.play()
 
     def current_item_changed(self, _: QtWidgets.QTableWidgetItem, __: QtWidgets.QTableWidgetItem) -> None:
-        if not self.parent.tools_widget.current_music_path:
+        if not self.parent.tools_widget.audio_player.hasAudio():
             self.parent.tools_widget.current_music_path = self.table.model().index(self.table.currentRow(), 2).data()
+            return
         self.parent.tools_widget.new_music_path = self.table.model().index(self.table.currentRow(), 2).data()
-        print(self.parent.tools_widget.new_music_path)
     
     def shuffle_items(self) -> list:
         indexes = [(row, column) for row in range(self.table.rowCount()) for column in range(self.table.columnCount())]
@@ -96,7 +96,6 @@ class MusicWidget(QtWidgets.QWidget):
     def update_musics(self, loaded_files: list[tinytag.TinyTag], names_files: list[str], path_to_files: list[str]) -> None:
         new_thread = threading.Thread(target=self.fill_database, args=(loaded_files, names_files, path_to_files))
         new_thread.start()
-
 
     def show_message(self, text, error) -> None:
         self.parent.show_message(text, error)
@@ -132,6 +131,8 @@ class MusicWidget(QtWidgets.QWidget):
                 True
             )
             self.list_not_unique_music.clear()
+        
+        self.table.setCurrentCell(0, 0)
 
     def fill_musics(self, musics=Musics.select()) -> None:  
         self.table.setRowCount(len(Musics.select()))
@@ -159,6 +160,8 @@ class MusicWidget(QtWidgets.QWidget):
             model.delete().execute()
 
     def clear_musics(self) -> None:
+        self.parent.tools_widget.current_music_path, \
+        self.parent.tools_widget.new_music_path = None, None
         self.parent.tools_widget.stop()
         self.clear_database()
         self.table.clearContents()
