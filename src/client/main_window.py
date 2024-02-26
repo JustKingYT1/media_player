@@ -93,7 +93,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def randomize_action_clicked(self) -> None:
         self.music_widget.randomize()
 
-
     def closeEvent(self, event: QCloseEvent) -> None:
         
         with open(CONFIG_PATH, 'w') as file:

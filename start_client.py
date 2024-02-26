@@ -1,8 +1,4 @@
-from sys import argv, path
-from settings import *
-
-path.append('C:/media_player/')
-
+from sys import argv
 from src.client.main_window import MainWindow
 from PySide6.QtWidgets import QApplication
 

@@ -19,7 +19,6 @@ class MusicWidget(QtWidgets.QWidget):
     stop_flag: bool = False
     add_music_signal = QtCore.Signal(str, str, str)
     show_message_signal = QtCore.Signal(str, bool)
-    add_music_slot = QtCore.Slot(str, str, str)
     def __init__(self, parent: QtWidgets.QWidget) -> None:
         super().__init__(parent=parent)
         self.parent = parent
