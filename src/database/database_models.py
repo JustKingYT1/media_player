@@ -1,11 +1,6 @@
 import peewee
 
-import sys
-
-sys.path.append('../media_player')
-
 from settings import DATABASE_PATH, DEBUG
-
 
 db = peewee.SqliteDatabase(database=DATABASE_PATH)
 
@@ -21,9 +16,9 @@ class Musics(BaseModel):
     path = peewee.CharField(unique=True)
     class Meta:
         database = db
-        # indexes = (
-        #     (('artist', 'title'), True),
-        # )
+        indexes = (
+            (('artist', 'title'), True),
+        )
 
 
 class Users(BaseModel):
@@ -41,6 +36,5 @@ class UserPlaylists(BaseModel):
         )
 
 
-if DEBUG:
-    db.create_tables([Musics, Users, UserPlaylists])
+db.create_tables([Musics, Users, UserPlaylists])
         

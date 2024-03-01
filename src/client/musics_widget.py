@@ -134,7 +134,7 @@ class MusicWidget(QtWidgets.QWidget):
         self.table.setCurrentCell(0, 0)
 
     def fill_musics(self, musics=Musics.select()) -> None:  
-        self.table.setRowCount(len(Musics.select()))
+        self.table.setRowCount(len(musics))
         for model in musics:
             if self.stop_flag:  
                 exit()          

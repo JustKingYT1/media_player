@@ -43,7 +43,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.music_widget.table.mousePressEvent = lambda event: self.modifyMousePressEvent(event=event, widget=self.music_widget.table, parent=QtWidgets.QTableWidget)
         self.tools_widget.audio_time_widget.slider.mousePressEvent = lambda event: self.modifyMousePressEvent(event, widget=self.tools_widget.audio_time_widget.slider, parent=Slider)
         
-        if self.music_widget.table.rowCount() <= 0:
+        if self.music_widget.table.rowCount() == 0:
             self.tools_widget.switch_buttons(False)
 
         self.show()
